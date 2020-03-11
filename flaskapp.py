@@ -1,7 +1,7 @@
-from cerb import VideoStream
-from flask import Response
-from flask import Flask
-from flask import render_template
+global lock
+
+from lib.video_stream import VideoStream
+from flask import Response, Flask, render_template
 import threading
 import argparse
 import datetime
@@ -15,7 +15,7 @@ import numpy as np
 import sys
 import time
 from twilio.rest import Client
-from threading import Thread
+import threading
 import importlib.util
 
 # initialize the output frame and a lock used to ensure thread-safe
@@ -28,7 +28,8 @@ app = Flask(__name__)
 # initialize the video stream and allow the camera sensor to
 # warmup
 #vs = VideoStream(usePiCamera=1).start()
-vs = VideoStream(src=0).start()
+vs = VideoStream()
+vs.start()
 time.sleep(2.0)
 
 @app.route("/")
@@ -36,25 +37,26 @@ def index():
 	# return the rendered template
 	return render_template("index.html")
 
+
+
 def generate():
 	# grab global references to the output frame and lock variables
-	global Frame1, lock
 	# loop over frames from the output stream
 	while True:
 		# wait until the lock is acquired
 		with lock:
 			# check if the output frame is available, otherwise skip
 			# the iteration of the loop
-			if Frame1 is None:
-				continue
+			# if Frame1 is None:
+				# continue
+
 			# encode the frame in JPEG format
-			(flag, encodedImage) = cv2.imencode(".jpg", Frame1)
+			(flag, encodedImage) = cv2.imencode(".jpg", vs.read())
 			# ensure the frame was successfully encoded
 			if not flag:
 				continue
 		# yield the output frame in the byte format
-		yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
-			bytearray(encodedImage) + b'\r\n')
+		yield b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n'
 
 @app.route("/video_feed")
 def video_feed():
@@ -75,10 +77,10 @@ if __name__ == '__main__':
 		help="# of frames used to construct the background model")
 	args = vars(ap.parse_args())
 	# start a thread that will perform motion detection
-	t = threading.Thread(target=detect_motion, args=(
-		args["frame_count"],))
-	t.daemon = True
-	t.start()
+	# t = threading.Thread(target=detect_motion, args=(
+	# 	args["frame_count"],))
+	# t.daemon = True
+	# t.start()
 	# start the flask app
 	app.run(host=args["ip"], port=args["port"], debug=True,
 		threaded=True, use_reloader=False)
