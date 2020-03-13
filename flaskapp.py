@@ -7,7 +7,6 @@ import argparse
 import datetime
 import imutils
 import time
-import cv2
 import os
 import argparse
 import cv2
@@ -23,8 +22,10 @@ import importlib.util
 # are viewing the stream)
 outputFrame = None
 lock = threading.Lock()
+
 # initialize a flask object
 app = Flask(__name__)
+
 # initialize the video stream and allow the camera sensor to
 # warmup
 #vs = VideoStream(usePiCamera=1).start()

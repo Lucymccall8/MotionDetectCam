@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
                 # if knife detected send warning text using Twilio
                 if object_name == "knife":
-                    account_sid = 'ACec8291bcf1440c2af4ea082bb02bc345'
+                    account_sid = 'enter_account_sid'
                     auth_token = '8e6ac111ccdde5d97ace996333d842d4'
                     client = Client(account_sid, auth_token)
 
